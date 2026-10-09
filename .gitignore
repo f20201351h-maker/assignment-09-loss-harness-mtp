@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+tmp/
+# datasets, caches and checkpoints are never committed; the notebook re-downloads its data
+data/
+*.bin
+*.pt
+*.safetensors
+.cache/
+.env

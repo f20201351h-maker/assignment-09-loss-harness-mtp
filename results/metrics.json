@@ -1,0 +1,592 @@
+{
+  "data": {
+    "source": "HuggingFaceFW/fineweb-edu sample-10BT (stream order)",
+    "train": {
+      "documents": 19443,
+      "windows": 78947,
+      "tokens_in_windows": 20210432,
+      "windows_with_a_boundary": 0.234,
+      "boundaries_per_window": 0.245
+    },
+    "val": {
+      "documents": 525,
+      "windows": 1954,
+      "tokens_in_windows": 500224,
+      "windows_with_a_boundary": 0.252,
+      "boundaries_per_window": 0.268
+    }
+  },
+  "shapes": {
+    "tokens": "[32, 256]",
+    "doc_ids": "[32, 256]",
+    "positions": "[32, 256]",
+    "attention mask": "[32, 1, 256, 256]",
+    "token embeddings wte(tokens)": "[32, 256, 384]",
+    "+ position embeddings wpe(pos)": "[32, 256, 384]",
+    "q (k and v: same shape)": "[32, 6, 256, 64]",
+    "attention output": "[32, 256, 384]",
+    "SwiGLU inner silu(gate)*up": "[32, 256, 1024]",
+    "residual stream after block 1": "[32, 256, 384]",
+    "hidden = norm_f(x) after 6 blocks": "[32, 256, 384]",
+    "output head weight W": "[50257, 384]",
+    "logits = hidden @ W.T": "[32, 256, 50257]",
+    "logits[:, :-1]": "[32, 255, 50257]",
+    "tokens[:, 1:]": "[32, 255]",
+    "logits[:, :-1].reshape(-1, V)": "[8160, 50257]",
+    "tokens[:, 1:].reshape(-1)": "[8160]",
+    "harness targets build_targets(k=1)": "[32, 256]",
+    "per-position cross-entropy": "[32, 256]",
+    "contributing positions n": "[]",
+    "loss": "[]"
+  },
+  "shift_checks": {
+    "sentence, k=1": {
+      "passed": true,
+      "detail": "all 13 contributing targets are the token exactly 1 position(s) later"
+    },
+    "validation batch with doc masks, k=1": {
+      "passed": true,
+      "detail": "all 8,153 contributing targets are the token exactly 1 position(s) later"
+    },
+    "harness == literal formula (no masks)": {
+      "passed": true,
+      "detail": "literal 10.909299 vs harness 10.909300; denominators 8,160 vs 8,160"
+    },
+    "NEGATIVE CONTROL wrong direction (target = previous token)": {
+      "passed": true,
+      "detail": "check correctly FAILED: 8,092 of 8,153 targets are NOT the token 1 position(s) later (32 of them point outside the window)"
+    },
+    "NEGATIVE CONTROL no shift (target = same token)": {
+      "passed": true,
+      "detail": "check correctly FAILED: 8,192 of 8,192 targets are NOT the token 1 position(s) later (32 of them point outside the window)"
+    }
+  },
+  "shift_table": [
+    {
+      "t": 0,
+      "input": "\"The\"",
+      "target_t+1": "\" capital\""
+    },
+    {
+      "t": 1,
+      "input": "\" capital\"",
+      "target_t+1": "\" of\""
+    },
+    {
+      "t": 2,
+      "input": "\" of\"",
+      "target_t+1": "\" India\""
+    },
+    {
+      "t": 3,
+      "input": "\" India\"",
+      "target_t+1": "\" is\""
+    },
+    {
+      "t": 4,
+      "input": "\" is\"",
+      "target_t+1": "\" New\""
+    },
+    {
+      "t": 5,
+      "input": "\" New\"",
+      "target_t+1": "\" Delhi\""
+    },
+    {
+      "t": 6,
+      "input": "\" Delhi\"",
+      "target_t+1": "\",\""
+    },
+    {
+      "t": 7,
+      "input": "\",\"",
+      "target_t+1": "\" and\""
+    },
+    {
+      "t": 8,
+      "input": "\" and\"",
+      "target_t+1": "\" the\""
+    },
+    {
+      "t": 9,
+      "input": "\" the\"",
+      "target_t+1": "\" Parliament\""
+    },
+    {
+      "t": 10,
+      "input": "\" Parliament\"",
+      "target_t+1": "\" meets\""
+    },
+    {
+      "t": 11,
+      "input": "\" meets\"",
+      "target_t+1": "\" there\""
+    },
+    {
+      "t": 12,
+      "input": "\" there\"",
+      "target_t+1": "\".\""
+    }
+  ],
+  "padding_untrained": {
+    "positions B*(L-1)": 68,
+    "contributing after mask": 33,
+    "mean CE of the padding targets alone": 9.673779378618512,
+    "loss unmasked": 10.242022514343262,
+    "loss masked, wrong denominator": 5.262871265411377,
+    "loss masked, correct": 10.844704627990723,
+    "reference: sentences run alone": 10.84470425230084,
+    "|masked - reference|": 3.756898827589339e-07
+  },
+  "packing_untrained": {
+    "targets before masking": 32,
+    "targets after masking": 31,
+    "masked transition": "\"<|endoftext|>\" -> \"Photos\"",
+    "CE of the boundary target": 11.154458999633789,
+    "loss before boundary mask": 10.862750053405762,
+    "loss after boundary mask": 10.853340148925781,
+    "difference (before - after)": 0.009409904479980469,
+    "predicted difference (boundary_ce - after)/n_before": 0.009409964084625244,
+    "loss of A and B run separately": 10.853339964343656,
+    "max |B logits packed - B alone|, doc-aware attention": 1.7881393432617188e-06,
+    "max |B logits packed - B alone|, plain causal, no doc ids": 2.1424355506896973
+  },
+  "perplexity_untrained": {
+    "vocabulary size V": 50257,
+    "ln V": 10.82490511970208,
+    "measured initial loss (nats)": 10.921497424825256,
+    "initial perplexity exp(loss)": 55353.624806894004,
+    "perplexity / V": 1.1014112423521898,
+    "measured logit std sigma": 0.3914816081523895,
+    "predicted loss ln V + sigma^2/2": 10.90153404446287,
+    "validation positions": 326058,
+    "mean logit of the current input token (tied-head copy bias)": 2.0700676441192627
+  },
+  "perplexity_bad_init_counterexample": {
+    "initial loss": 382.32618217640277,
+    "perplexity": 1.1019228942814547e+166,
+    "ln V (expected)": 10.82490511970208
+  },
+  "tied_vs_untied": {
+    "tied_total": 30018816,
+    "untied_total": 49317504,
+    "difference": 19298688,
+    "head_matrix_VxD": 19298688,
+    "non_embedding_params": 10621824,
+    "tied_plus_t2_head_total": 49317504
+  },
+  "chunked_ce": {
+    "N_positions": 8192,
+    "D": 384,
+    "V": 50257,
+    "dtype": "float32",
+    "chunk": 1024,
+    "ordinary_peak_MiB": 4711.5947265625,
+    "naive_chunked_peak_MiB": 1963.1689453125,
+    "chunked_peak_MiB": 283.96142578125,
+    "ratio_ordinary_over_chunked": 16.592375931342456,
+    "ordinary_loss": 10.909390449523926,
+    "chunked_loss": 10.90938949584961,
+    "abs_loss_diff": 9.5367431640625e-07,
+    "max_abs_dhidden_diff": 7.185008144006133e-11,
+    "max_abs_dW_diff": 2.2724270820617676e-07,
+    "ordinary_ms": 296.26564899999863,
+    "chunked_ms": 413.56451200000066,
+    "one_full_logits_tensor_MiB": 1570.53125,
+    "one_chunk_block_MiB": 196.31640625,
+    "gradcheck_float64": true,
+    "sweep": {
+      "128": {
+        "peak_MiB": 110.44921875,
+        "ms": 511.2171279999984
+      },
+      "256": {
+        "peak_MiB": 135.17626953125,
+        "ms": 478.3283419999975
+      },
+      "512": {
+        "peak_MiB": 184.63037109375,
+        "ms": 443.35603500000786
+      },
+      "1024": {
+        "peak_MiB": 283.53857421875,
+        "ms": 432.3530400000095
+      },
+      "2048": {
+        "peak_MiB": 482.35498046875,
+        "ms": 421.61438800000894
+      },
+      "4096": {
+        "peak_MiB": 876.98779296875,
+        "ms": 421.7772260000032
+      },
+      "8192": {
+        "peak_MiB": 1668.25341796875,
+        "ms": 424.36924199999737
+      }
+    },
+    "full_step_fp32": {
+      "ordinary_peak_MiB": 6285.2509765625,
+      "chunked_peak_MiB": 1857.3134765625,
+      "ratio": 3.384055010571069,
+      "ordinary_loss": 10.909390449523926,
+      "chunked_loss": 10.90938949584961
+    }
+  },
+  "t2_table": [
+    {
+      "t": 0,
+      "input": "\"The\"",
+      "target_t+1": "\" capital\"",
+      "target_t+2": "\" of\""
+    },
+    {
+      "t": 1,
+      "input": "\" capital\"",
+      "target_t+1": "\" of\"",
+      "target_t+2": "\" India\""
+    },
+    {
+      "t": 2,
+      "input": "\" of\"",
+      "target_t+1": "\" India\"",
+      "target_t+2": "\" is\""
+    },
+    {
+      "t": 3,
+      "input": "\" India\"",
+      "target_t+1": "\" is\"",
+      "target_t+2": "\" New\""
+    },
+    {
+      "t": 4,
+      "input": "\" is\"",
+      "target_t+1": "\" New\"",
+      "target_t+2": "\" Delhi\""
+    },
+    {
+      "t": 5,
+      "input": "\" New\"",
+      "target_t+1": "\" Delhi\"",
+      "target_t+2": "\",\""
+    },
+    {
+      "t": 6,
+      "input": "\" Delhi\"",
+      "target_t+1": "\",\"",
+      "target_t+2": "\" and\""
+    },
+    {
+      "t": 7,
+      "input": "\",\"",
+      "target_t+1": "\" and\"",
+      "target_t+2": "\" the\""
+    },
+    {
+      "t": 8,
+      "input": "\" and\"",
+      "target_t+1": "\" the\"",
+      "target_t+2": "\" Parliament\""
+    },
+    {
+      "t": 9,
+      "input": "\" the\"",
+      "target_t+1": "\" Parliament\"",
+      "target_t+2": "\" meets\""
+    },
+    {
+      "t": 10,
+      "input": "\" Parliament\"",
+      "target_t+1": "\" meets\"",
+      "target_t+2": "\" there\""
+    },
+    {
+      "t": 11,
+      "input": "\" meets\"",
+      "target_t+1": "\" there\"",
+      "target_t+2": "\".\""
+    },
+    {
+      "t": 12,
+      "input": "\" there\"",
+      "target_t+1": "\".\"",
+      "target_t+2": null
+    },
+    {
+      "t": 13,
+      "input": "\".\"",
+      "target_t+1": null,
+      "target_t+2": null
+    }
+  ],
+  "denominators_first_train_batch": {
+    "n1": 8149,
+    "n2": 8106,
+    "B*(T-1)": 8160,
+    "B*(T-2)": 8128
+  },
+  "runtime_minutes": {
+    "baseline": 12.29153714577357,
+    "mtp": 20.912437721093497,
+    "wrong_shift": 1.544485588868459
+  },
+  "wrong_shift_control": {
+    "wrong-shift run, training loss at step 300": 1.4090216159820557,
+    "correct baseline, training loss at step 300": 6.259594440460205,
+    "wrong-shift model scored on CORRECT t+1 targets (val)": 12.544959789220995,
+    "correct baseline val L1 at step 300": 6.421963509520374
+  },
+  "count_models": {
+    "unigram_ce": 7.677792232958047,
+    "bigram_ce": 6.046644441864615,
+    "skip_bigram_ce": 7.21518366943927,
+    "gap": 1.1685392275746551,
+    "lambda_bigram": 0.8,
+    "lambda_skip": 0.5
+  },
+  "part2": {
+    "final val L1 (t+1 head, mtp)": 5.249339415880841,
+    "final val L2 (t+2 head, mtp)": 6.411756877835442,
+    "final val L1 + L2": 11.661096293716284,
+    "final val L1 (baseline, no t+2 head)": 5.1867862778287215,
+    "L1(mtp) - L1(baseline)": 0.06255313805211937,
+    "final train L1 (last 50 steps, mtp)": 5.1747345447540285,
+    "final train L2 (last 50 steps, mtp)": 6.355887002944947,
+    "initial val L1": 10.921497424825256,
+    "initial val L2": 10.90982099119625,
+    "total drop L1": 5.6721580089444155,
+    "total drop L2": 4.498064113360808,
+    "fraction of total drop reached by step 600, L1": 0.8681160433717152,
+    "fraction of total drop reached by step 600, L2": 0.8835100470090431,
+    "drop over 2nd half of training, L1": 0.2859600047545028,
+    "drop over 2nd half of training, L2": 0.20772001767684944,
+    "final perplexity t+1 (mtp)": 190.4404249777175,
+    "final perplexity t+2 (mtp)": 608.9626147140077,
+    "final perplexity t+1 (baseline)": 178.89271664874659,
+    "max L2 - L1 gap (after step 0)": 1.1624174619546013,
+    "step of max gap": 2467,
+    "final L2 - L1 gap": 1.1624174619546013
+  },
+  "part2_trajectory": {
+    "0": {
+      "val_L1": 10.921497424825256,
+      "val_L2": 10.90982099119625,
+      "baseline_val_L1": 10.921497424825256
+    },
+    "100": {
+      "val_L1": 7.063282926519776,
+      "val_L2": 7.567552885312383,
+      "baseline_val_L1": 7.009734980964049
+    },
+    "200": {
+      "val_L1": 6.643695122100478,
+      "val_L2": 7.369988293496617,
+      "baseline_val_L1": 6.620867315317723
+    },
+    "500": {
+      "val_L1": 6.116088790417212,
+      "val_L2": 7.011607697880451,
+      "baseline_val_L1": 6.118428881141793
+    },
+    "1000": {
+      "val_L1": 5.683790192374083,
+      "val_L2": 6.727694531487308,
+      "baseline_val_L1": 5.665467312419195
+    },
+    "1500": {
+      "val_L1": 5.451873538147939,
+      "val_L2": 6.56251667840681,
+      "baseline_val_L1": 5.4094552853454205
+    },
+    "2000": {
+      "val_L1": 5.312594042936139,
+      "val_L2": 6.458920561514355,
+      "baseline_val_L1": 5.253218548155251
+    },
+    "2467": {
+      "val_L1": 5.249339415880841,
+      "val_L2": 6.411756877835442,
+      "baseline_val_L1": 5.1867862778287215
+    }
+  },
+  "boundaries_val_trained": {
+    "in-document targets": 326058,
+    "boundary targets": 342,
+    "mean CE in-document": 5.186786349648682,
+    "mean CE at boundaries": 7.792146766394899,
+    "val loss, boundaries masked (reported)": 5.186786349648682,
+    "val loss, boundaries included": 5.189516230967699,
+    "boundary inputs are all <|endoftext|>": true
+  },
+  "packing_trained": {
+    "targets before masking": 32,
+    "targets after masking": 31,
+    "masked transition": "\"<|endoftext|>\" -> \"Photos\"",
+    "CE of the boundary target": 10.478567123413086,
+    "loss before boundary mask": 4.57763671875,
+    "loss after boundary mask": 4.387283802032471,
+    "difference (before - after)": 0.1903529167175293,
+    "predicted difference (boundary_ce - after)/n_before": 0.19035260379314423,
+    "loss of A and B run separately": 4.387283509777438,
+    "max |B logits packed - B alone|, doc-aware attention": 1.811981201171875e-05,
+    "max |B logits packed - B alone|, plain causal, no doc ids": 4.56180477142334
+  },
+  "padding_trained": {
+    "positions B*(L-1)": 68,
+    "contributing after mask": 33,
+    "mean CE of the padding targets alone": 10.600838388715472,
+    "loss unmasked": 7.955281734466553,
+    "loss masked, wrong denominator": 2.4989678859710693,
+    "loss masked, correct": 5.149388313293457,
+    "reference: sentences run alone": 5.149387923153964,
+    "|masked - reference|": 3.901394931560276e-07
+  },
+  "top1_agreement": {
+    "baseline head 1": {
+      "t+1": 0.2260824761238798,
+      "t+2": 0.02704077229407341,
+      "t (copy current)": 0.000335693359375,
+      "t-1 (copy previous)": 0.017346607045372296
+    },
+    "mtp head 1": {
+      "t+1": 0.2225585632004122,
+      "t+2": 0.02966378576976661,
+      "t (copy current)": 0.0005950927734375,
+      "t-1 (copy previous)": 0.01729140214317698
+    },
+    "mtp head 2": {
+      "t+1": 0.03466867857865778,
+      "t+2": 0.12878965342933582,
+      "t (copy current)": 0.0276885986328125,
+      "t-1 (copy previous)": 0.036159210937931285
+    },
+    "wrong-shift head 1": {
+      "t+1": 0.007704150795257285,
+      "t+2": 0.00994649175800466,
+      "t (copy current)": 0.00718994140625,
+      "t-1 (copy previous)": 0.8737709241914016
+    }
+  },
+  "top1_best_match": {
+    "baseline head 1": "t+1",
+    "mtp head 1": "t+1",
+    "mtp head 2": "t+2",
+    "wrong-shift head 1": "t-1 (copy previous)"
+  },
+  "trained_predictions_table": [
+    {
+      "t": 0,
+      "input": "\"The\"",
+      "head1_top1": "\" first\"",
+      "head2_top1": "\" of\""
+    },
+    {
+      "t": 1,
+      "input": "\" capital\"",
+      "head1_top1": "\" of\"",
+      "head2_top1": "\" the\""
+    },
+    {
+      "t": 2,
+      "input": "\" of\"",
+      "head1_top1": "\" the\"",
+      "head2_top1": "\" is\""
+    },
+    {
+      "t": 3,
+      "input": "\" India\"",
+      "head1_top1": "\" is\"",
+      "head2_top1": "\" the\""
+    },
+    {
+      "t": 4,
+      "input": "\" is\"",
+      "head1_top1": "\" the\"",
+      "head2_top1": "\" of\""
+    },
+    {
+      "t": 5,
+      "input": "\" New\"",
+      "head1_top1": "\" Zealand\"",
+      "head2_top1": "\",\""
+    },
+    {
+      "t": 6,
+      "input": "\" Delhi\"",
+      "head1_top1": "\",\"",
+      "head2_top1": "\" the\""
+    },
+    {
+      "t": 7,
+      "input": "\",\"",
+      "head1_top1": "\" the\"",
+      "head2_top1": "\" is\""
+    },
+    {
+      "t": 8,
+      "input": "\" and\"",
+      "head1_top1": "\" the\"",
+      "head2_top1": "\" is\""
+    },
+    {
+      "t": 9,
+      "input": "\" the\"",
+      "head1_top1": "\" world\"",
+      "head2_top1": "\" of\""
+    },
+    {
+      "t": 10,
+      "input": "\" Parliament\"",
+      "head1_top1": "\" of\"",
+      "head2_top1": "\" the\""
+    },
+    {
+      "t": 11,
+      "input": "\" meets\"",
+      "head1_top1": "\" the\"",
+      "head2_top1": "\" the\""
+    },
+    {
+      "t": 12,
+      "input": "\" there\"",
+      "head1_top1": "\".\"",
+      "head2_top1": "\" a\""
+    },
+    {
+      "t": 13,
+      "input": "\".\"",
+      "head1_top1": "\"\\n\"",
+      "head2_top1": "\" is\""
+    }
+  ],
+  "config": {
+    "vocab_size": 50257,
+    "block_size": 256,
+    "n_layer": 6,
+    "n_head": 6,
+    "n_embd": 384,
+    "ffn_hidden": 1024,
+    "batch_size": 32,
+    "max_lr": 0.001,
+    "min_lr": 0.0001,
+    "warmup_steps": 100,
+    "weight_decay": 0.1,
+    "grad_clip": 1.0,
+    "train_tokens": 20000000,
+    "val_tokens": 500000,
+    "eval_every": 100,
+    "eval_batches": 40,
+    "wrong_shift_steps": 300,
+    "ce_chunk": 1024
+  },
+  "environment": {
+    "python": "3.11.12",
+    "torch": "2.5.1+cu124",
+    "cuda": "12.4",
+    "gpu": "Tesla T4",
+    "tiktoken": "0.8.0",
+    "numpy": "2.1.3",
+    "quick_mode": false,
+    "seed": 1337
+  }
+}
